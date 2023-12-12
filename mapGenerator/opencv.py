@@ -1,39 +1,60 @@
-import cv2 as cv
+import cv2
 import numpy as np
-from matplotlib import pyplot as plt
 
-def Detect(template, img):
- w, h = template.shape[::-1]
- res = cv.matchTemplate(img_gray,template,cv.TM_CCOEFF_NORMED)
- threshold = 0.8
- loc = np.where( res >= threshold)
- for pt in zip(*loc[::-1]):
-  cv.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
+def find_all_shapes(source_image_path, template_paths, output_path):
+    # Read the source image
+    source_image = cv2.imread(source_image_path)
 
+    # Convert the source image to grayscale
+    source_gray = cv2.cvtColor(source_image, cv2.COLOR_BGR2GRAY)
 
-templates=[]
-adrs=[]
-while True:
- adr = input()
- if adr == "":
-  break
- else:
-  adrs.append(adr)
+    for template_path in template_paths:
+        # Read the template image
+        template_image = cv2.imread(template_path)
 
-for img in adrs:
- template=cv.imread(img, cv.IMREAD_GRAYSCALE)
- assert template is not None, "file could not be read, check with os.path.exists()"
- templates.append(template)
+        # Convert the template image to grayscale
+        template_gray = cv2.cvtColor(template_image, cv2.COLOR_BGR2GRAY)
 
+        # Match the template in the source image
+        result = cv2.matchTemplate(source_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+        threshold = 0.8  # Adjust threshold as needed
+        locations = np.where(result >= threshold)
 
-img_rgb = cv.imread('shapes.png')
-assert img_rgb is not None, "file could not be read, check with os.path.exists()"
+        # Draw rectangles around all occurrences
+        for loc in zip(*locations[::-1]):
+            top_left = loc
+            bottom_right = (top_left[0] + template_gray.shape[1], top_left[1] + template_gray.shape[0])
+            cv2.rectangle(source_image, top_left, bottom_right, (0, 255, 0), 1)  # Adjust thickness here
 
-img_gray = cv.cvtColor(img_rgb, cv.COLOR_BGR2GRAY)
+    # Save the result image
+    cv2.imwrite(output_path, source_image)
 
+# def main():
+#     # Replace this path with the path to your source image
+#     source_image_path = "DefaultPics/shapes.png"
 
-for n in templates :
- Detect(n,img_rgb)
+#     # Replace this path with the desired output path for the result image
+#     output_path = "DefaultPics/res.png"
 
-cv.imwrite('res.png',img_rgb)
+#     use_pre_saved_templates = False  # Set to False if you want to provide your own templates
 
+#     if use_pre_saved_templates:
+#         # Use pre-saved templates
+#         template_paths = [
+#             "path/to/template/unknown_shape_1.jpg",
+#             "path/to/template/unknown_shape_2.jpg",
+#             # Add more template paths as needed
+#         ]
+#     else:
+#         # Provide your own template paths
+#         template_paths = [
+#             "DefaultPics/shape.png",
+#             "DefaultPics/shape2.png",
+#             "DefaultPics/shape3.png",
+#             # Add more template paths as needed
+#         ]
+
+#     find_all_shapes(source_image_path, template_paths, output_path)
+
+# if __name__ == "__main__":
+#     main()
