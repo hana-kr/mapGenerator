@@ -4,6 +4,9 @@ import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from opencv import find_all_shapes
+from PIL import Image, ImageTk
+import PIL
+DEFAULT_IMAGE_PATH = "DefaultPics/shapes.png" 
 
 class ShapeDetectionApp:
     def __init__(self, master):
@@ -76,10 +79,53 @@ class ShapeDetectionApp:
             find_all_shapes(source_image_path, template_paths, os.path.join(output_folder_path, "result_image.jpg"))
             messagebox.showinfo("Complete", "Shape detection completed!")
 
+    def resize_image(self, image, size):
+        # Resize the image to a square shape
+        thumb = image.copy()
+        thumb.thumbnail(size, PIL.Image.LANCZOS)
+        offset = (max((size[0] - thumb.size[0]) // 2, 0), max((size[1] - thumb.size[1]) // 2, 0))
+        square_image = Image.new('RGB', size, (255, 255, 255))
+        square_image.paste(thumb, offset)
+        return square_image
+
+
     def add_template(self):
-        file_path = filedialog.askopenfilename(title="Select a Template Image", filetypes=[("Image files", "*.*")])
-        if file_path and file_path.lower().endswith(('.png', '.jpg', '.jpeg')):
-            self.template_listbox.insert(tk.END, file_path)
+        frame = tk.Frame(self.template_listbox )
+        frame.pack(side=tk.TOP, fill=tk.X)
+
+        # Browse Image Widgets
+        image_preview = tk.Label(frame)
+        image_preview.pack(side=tk.LEFT)
+
+        def update_image_preview():
+            image_path = filedialog.askopenfilename()
+            if image_path:
+                image = Image.open(image_path)
+                # Resize the image to a square shape
+                image = self.resize_image(image, (100, 100))
+                photo = ImageTk.PhotoImage(image)
+                image_preview.config(image=photo)
+                image_preview.image = photo  # Keep a reference to prevent garbage collection of the image
+
+        image_button = tk.Button(frame, text="Browse Image", command=update_image_preview)
+        image_button.pack(side=tk.LEFT)
+
+        # File Address Display
+        file_address = tk.Entry(frame)
+        file_address.pack(side=tk.LEFT)
+
+        browse_button = tk.Button(frame, text="Browse", command=self.open_file)
+        browse_button.pack(side=tk.LEFT)
+
+        # Set default image
+        default_image = Image.open(DEFAULT_IMAGE_PATH)
+        # Resize the default image to a square shape
+        default_image = self.resize_image(default_image, (100, 100))
+        default_photo = ImageTk.PhotoImage(default_image)
+        image_preview.config(image=default_photo)
+        image_preview.image = default_photo
+
+
 
     def remove_template(self):
         selected_index = self.template_listbox.curselection()
