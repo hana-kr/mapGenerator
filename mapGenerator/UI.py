@@ -1,12 +1,11 @@
-# ui_app.py
-
 import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from opencv import find_all_shapes
 from PIL import Image, ImageTk
 import PIL
-DEFAULT_IMAGE_PATH = "DefaultPics/shapes.png" 
+
+DEFAULT_IMAGE_PATH = "DefaultPics/Default.png"
 
 class ShapeDetectionApp:
     def __init__(self, master):
@@ -28,8 +27,26 @@ class ShapeDetectionApp:
         # Widgets for user templates
         tk.Label(self.master, text="User Templates:").grid(row=2, column=0, padx=5, pady=5)
 
-        self.template_listbox = tk.Listbox(self.master, selectmode=tk.SINGLE, height=5, width=50)
-        self.template_listbox.grid(row=2, column=1, padx=5, pady=5, rowspan=2)
+        max_canvas_height = 10  # Set your desired maximum height
+        canvas_width = 50  # Set your desired width
+
+        self.margin_frame = tk.Frame(self.master, padx=20, pady=20, bg="black")
+        self.margin_frame.grid(row=2, column=1, padx=5, pady=5, sticky='w')
+
+        self.canvas = tk.Canvas(self.master, height=200 , width= 460, bg="black")  # Assuming each frame is 50 pixels high
+        self.canvas.grid(row=2, column=1, padx=5, pady=5, sticky='w')
+
+        self.scrollbar = tk.Scrollbar(self.master, orient="vertical", command=self.canvas.yview)
+        self.scrollbar.grid(row=2, column=2, padx=5, pady=5, sticky='ns')
+
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        # Frame to hold the template widgets
+        self.template_frame = tk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.template_frame, anchor="nw")
+
+        # Add a bind to the canvas to update scroll region when the frame size changes
+        self.template_frame.bind("<Configure>", lambda event, canvas=self.canvas: self.on_frame_configure(canvas))
 
         tk.Button(self.master, text="Add Template", command=self.add_template).grid(row=4, column=1, padx=5, pady=5, sticky='e')
         tk.Button(self.master, text="Remove Template", command=self.remove_template).grid(row=4, column=1, padx=(0, 130), pady=5, sticky='e')
@@ -44,6 +61,9 @@ class ShapeDetectionApp:
 
         # Variable to store the selected output folder
         self.output_folder_var = tk.StringVar()
+
+    def on_frame_configure(self, canvas):
+        canvas.configure(scrollregion=canvas.bbox("all"))
 
     def open_file(self):
         file_path = filedialog.askopenfilename(title="Select a Source Image", filetypes=[("Image files", "*.*")])
@@ -83,54 +103,62 @@ class ShapeDetectionApp:
         # Resize the image to a square shape
         thumb = image.copy()
         thumb.thumbnail(size, PIL.Image.LANCZOS)
+        square_image = Image.new('RGBA', size, (0, 0, 0, 0))
         offset = (max((size[0] - thumb.size[0]) // 2, 0), max((size[1] - thumb.size[1]) // 2, 0))
-        square_image = Image.new('RGB', size, (255, 255, 255))
         square_image.paste(thumb, offset)
         return square_image
 
-
     def add_template(self):
-        frame = tk.Frame(self.template_listbox )
-        frame.pack(side=tk.TOP, fill=tk.X)
+        frame = tk.Frame(self.template_frame, width=450, relief=tk.SOLID, borderwidth=2)
+        frame.pack(side=tk.TOP, fill=tk.X, ipadx= 72)
 
         # Browse Image Widgets
         image_preview = tk.Label(frame)
         image_preview.pack(side=tk.LEFT)
+
+        image_preview_2 = tk.Label(frame)
+        image_preview_2.pack(side=tk.RIGHT)
 
         def update_image_preview():
             image_path = filedialog.askopenfilename()
             if image_path:
                 image = Image.open(image_path)
                 # Resize the image to a square shape
-                image = self.resize_image(image, (100, 100))
+                image = self.resize_image(image, (50, 50))
                 photo = ImageTk.PhotoImage(image)
                 image_preview.config(image=photo)
                 image_preview.image = photo  # Keep a reference to prevent garbage collection of the image
+
+        def update_image_preview_2():
+            image_path = filedialog.askopenfilename()
+            if image_path:
+                image = Image.open(image_path)
+                # Resize the image to a square shape
+                image = self.resize_image(image, (50, 50))
+                photo = ImageTk.PhotoImage(image)
+                image_preview_2.config(image=photo)
+                image_preview_2.image = photo
 
         image_button = tk.Button(frame, text="Browse Image", command=update_image_preview)
         image_button.pack(side=tk.LEFT)
 
         # File Address Display
-        file_address = tk.Entry(frame)
-        file_address.pack(side=tk.LEFT)
-
-        browse_button = tk.Button(frame, text="Browse", command=self.open_file)
-        browse_button.pack(side=tk.LEFT)
+        browse_button = tk.Button(frame, text="Browse", command=update_image_preview_2)
+        browse_button.pack(side=tk.RIGHT)
 
         # Set default image
         default_image = Image.open(DEFAULT_IMAGE_PATH)
         # Resize the default image to a square shape
-        default_image = self.resize_image(default_image, (100, 100))
+        default_image = self.resize_image(default_image, (50, 50))
         default_photo = ImageTk.PhotoImage(default_image)
         image_preview.config(image=default_photo)
         image_preview.image = default_photo
-
-
+        image_preview_2.config(image=default_photo)
+        image_preview_2.image = default_photo
 
     def remove_template(self):
-        selected_index = self.template_listbox.curselection()
-        if selected_index:
-            self.template_listbox.delete(selected_index)
+        # Implement the removal of a template from the canvas
+        pass
 
 if __name__ == "__main__":
     root = tk.Tk()
