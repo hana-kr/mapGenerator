@@ -9,6 +9,7 @@ DEFAULT_IMAGE_PATH = "DefaultPics/Default.png"
 
 class ShapeDetectionApp:
     def __init__(self, master):
+        self.template_frames = []
         self.master = master
         self.master.title("Shape Detection")
 
@@ -156,9 +157,22 @@ class ShapeDetectionApp:
         image_preview_2.config(image=default_photo)
         image_preview_2.image = default_photo
 
+        self.template_frames.append(frame)
+
     def remove_template(self):
-        # Implement the removal of a template from the canvas
-        pass
+        if self.template_frames:
+        # Get the last frame in the list
+            last_template = self.template_frames[-1]
+
+            # Destroy the last frame
+            last_template.destroy()
+
+            # Remove the last frame from the list
+            self.template_frames.pop()
+
+            # Reset the selected template
+            self.selected_template = None
+
 
 if __name__ == "__main__":
     root = tk.Tk()
