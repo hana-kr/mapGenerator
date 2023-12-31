@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from opencv import find_all_shapes
 from PIL import Image, ImageTk
+import uuid
 import PIL
 
 DEFAULT_IMAGE_PATH = "DefaultPics/Default.png"
@@ -10,6 +11,7 @@ DEFAULT_IMAGE_PATH = "DefaultPics/Default.png"
 class ShapeDetectionApp:
     def __init__(self, master):
         self.template_frames = []
+        self.image_tuples = []
         self.master = master
         self.master.title("Shape Detection")
 
@@ -109,10 +111,18 @@ class ShapeDetectionApp:
         square_image.paste(thumb, offset)
         return square_image
 
+    def find_tuple_by_second_item(self, list_of_tuples, target_value):
+        for tpl in list_of_tuples:
+            if len(tpl) > 1 and tpl[1] == target_value:
+                return tpl[0]
+        return None
+
     def add_template(self):
+        frame_id = str(uuid.uuid4())
         frame = tk.Frame(self.template_frame, width=450, relief=tk.SOLID, borderwidth=2)
         frame.pack(side=tk.TOP, fill=tk.X, ipadx= 72)
 
+        frame.id = frame_id
         # Browse Image Widgets
         image_preview = tk.Label(frame)
         image_preview.pack(side=tk.LEFT)
@@ -123,6 +133,8 @@ class ShapeDetectionApp:
         def update_image_preview():
             image_path = filedialog.askopenfilename()
             if image_path:
+                image_tuple = (image_path,)  # Create a tuple with the first image path
+                self.image_tuples.append((image_tuple,frame.id))
                 image = Image.open(image_path)
                 # Resize the image to a square shape
                 image = self.resize_image(image, (50, 50))
@@ -133,6 +145,15 @@ class ShapeDetectionApp:
         def update_image_preview_2():
             image_path = filedialog.askopenfilename()
             if image_path:
+                 # Check if there's a tuple for the current frame
+                if self.image_tuples and self.find_tuple_by_second_item(self.image_tuples, frame.id) != None:
+                    # If a tuple with one image path exists, add the second image path to the tuple
+                    image_tuple = self.find_tuple_by_second_item(self.image_tuples, frame.id) + (image_path,)
+                    self.image_tuples[(self.find_tuple_by_second_item(self.image_tuples, frame.id), frame.id)] = (image_tuple, frame.id)  # Update the tuple in the list
+                else:
+                    # Create a new tuple with the second image path
+                    image_tuple = (image_path,)
+                    self.image_tuples.append((image_tuple,frame.id))
                 image = Image.open(image_path)
                 # Resize the image to a square shape
                 image = self.resize_image(image, (50, 50))
@@ -169,7 +190,8 @@ class ShapeDetectionApp:
 
             # Remove the last frame from the list
             self.template_frames.pop()
-
+            if self.find_tuple_by_second_item(self.image_tuples, last_template.id) != None:
+                self.image_tuples.remove((self.find_tuple_by_second_item(self.image_tuples, last_template.id), last_template.id))
             # Reset the selected template
             self.selected_template = None
 
