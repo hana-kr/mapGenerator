@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 from opencv import find_all_shapes
 from PIL import Image, ImageTk
 import uuid
@@ -36,7 +36,7 @@ class ShapeDetectionApp:
         self.margin_frame = tk.Frame(self.master, padx=20, pady=20, bg="black")
         self.margin_frame.grid(row=2, column=1, padx=5, pady=5, sticky='w')
 
-        self.canvas = tk.Canvas(self.master, height=200 , width= 460, bg="black")  # Assuming each frame is 50 pixels high
+        self.canvas = tk.Canvas(self.master, height=200 , width= 460, bg=self.source_entry.cget("bg")) 
         self.canvas.grid(row=2, column=1, padx=5, pady=5, sticky='w')
 
         self.scrollbar = tk.Scrollbar(self.master, orient="vertical", command=self.canvas.yview)
@@ -46,7 +46,7 @@ class ShapeDetectionApp:
 
         # Frame to hold the template widgets
         self.template_frame = tk.Frame(self.canvas)
-        self.canvas.create_window((0, 0), window=self.template_frame, anchor="nw")
+        self.canvas.create_window((0, 0), window=self.template_frame, anchor="nw", width=460, background=self.on_frame_configure(self.canvas))
 
         # Add a bind to the canvas to update scroll region when the frame size changes
         self.template_frame.bind("<Configure>", lambda event, canvas=self.canvas: self.on_frame_configure(canvas))
@@ -54,13 +54,8 @@ class ShapeDetectionApp:
         tk.Button(self.master, text="Add Template", command=self.add_template).grid(row=4, column=1, padx=5, pady=5, sticky='e')
         tk.Button(self.master, text="Remove Template", command=self.remove_template).grid(row=4, column=1, padx=(0, 130), pady=5, sticky='e')
 
-        # Checkbox for using pre-saved templates
-        self.pre_saved_var = tk.BooleanVar()
-        self.pre_saved_var.set(True)
-        tk.Checkbutton(self.master, text="Use pre-saved templates", variable=self.pre_saved_var).grid(row=6, column=1, padx=5, pady=5)
-
         # Run Detection button
-        tk.Button(self.master, text="Run Detection", command=self.run_detection).grid(row=7, column=1, pady=10)
+        tk.Button(self.master, text="Run Detection", command=self.run_detection).grid(row=6, column=1, pady=10)
 
         # Variable to store the selected output folder
         self.output_folder_var = tk.StringVar()
@@ -119,8 +114,8 @@ class ShapeDetectionApp:
 
     def add_template(self):
         frame_id = str(uuid.uuid4())
-        frame = tk.Frame(self.template_frame, width=450, relief=tk.SOLID, borderwidth=2)
-        frame.pack(side=tk.TOP, fill=tk.X, ipadx= 72)
+        frame = tk.Frame(self.template_frame, relief=tk.SOLID, highlightthickness=2, highlightbackground = self.source_entry.cget("bg"))
+        frame.pack(side=tk.TOP, fill=tk.X, )
 
         frame.id = frame_id
         # Browse Image Widgets
@@ -143,7 +138,14 @@ class ShapeDetectionApp:
                 image_preview.image = photo  # Keep a reference to prevent garbage collection of the image
 
         def update_image_preview_2():
-            image_path = filedialog.askopenfilename()
+            selected_option = selected_option_var.get()
+            if selected_option == "Browse Image":
+                image_path = filedialog.askopenfilename()
+            elif selected_option == "Presaved Image":
+                specific_folder_path = "3D shapes"  # Set the specific folder path
+                image_path = filedialog.askopenfilename(initialdir=specific_folder_path)
+                
+            
             if image_path:
                  # Check if there's a tuple for the current frame
                 if self.image_tuples and self.find_tuple_by_second_item(self.image_tuples, frame.id) != None:
@@ -164,9 +166,19 @@ class ShapeDetectionApp:
         image_button = tk.Button(frame, text="Browse Image", command=update_image_preview)
         image_button.pack(side=tk.LEFT)
 
-        # File Address Display
-        browse_button = tk.Button(frame, text="Browse", command=update_image_preview_2)
-        browse_button.pack(side=tk.RIGHT)
+        options = ["Browse Image", "Presaved"]
+
+        selected_option_var = tk.StringVar()
+        selected_option_var.set(options[0])  # Set the initial value
+
+        dropdown_menu = tk.OptionMenu(frame, selected_option_var, *options)
+        dropdown_menu.pack(side=tk.RIGHT)
+
+        def dropdown_callback(*args):
+            update_image_preview_2()
+
+        # Bind the callback to the dropdown menu
+        selected_option_var.trace_add("write", dropdown_callback)
 
         # Set default image
         default_image = Image.open(DEFAULT_IMAGE_PATH)
