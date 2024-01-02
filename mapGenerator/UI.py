@@ -59,11 +59,14 @@ class ShapeDetectionApp:
         separator.grid(row=6, column=0, columnspan=3, sticky="ew", pady=10)
         # Run Detection button
         tk.Button(self.master, text="Run Detection", command=self.run_detection).grid(row=7, column=2, padx=(0, 10), pady=(0,10), sticky='w')
-        tk.Button(self.master, text="cancel").grid(row=7, column=1, padx=10, pady=(0,10), sticky='e')
+        tk.Button(self.master, text="cancel", command=self.cancel).grid(row=7, column=1, padx=10, pady=(0,10), sticky='e')
 
         # Variable to store the selected output folder
         self.output_folder_var = tk.StringVar()
 
+    def cancel(self):
+        # Terminate the UI
+        self.master.destroy()
     def on_frame_configure(self, canvas):
         canvas.configure(scrollregion=canvas.bbox("all"))
 
