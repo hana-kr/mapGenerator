@@ -141,7 +141,7 @@ class ShapeDetectionApp:
             selected_option = selected_option_var.get()
             if selected_option == "Browse Image":
                 image_path = filedialog.askopenfilename()
-            elif selected_option == "Presaved Image":
+            elif selected_option == "Presaved":
                 specific_folder_path = "3D shapes"  # Set the specific folder path
                 image_path = filedialog.askopenfilename(initialdir=specific_folder_path)
                 
@@ -150,11 +150,15 @@ class ShapeDetectionApp:
                  # Check if there's a tuple for the current frame
                 if self.image_tuples and self.find_tuple_by_second_item(self.image_tuples, frame.id) != None:
                     # If a tuple with one image path exists, add the second image path to the tuple
-                    image_tuple = self.find_tuple_by_second_item(self.image_tuples, frame.id) + (image_path,)
-                    self.image_tuples[(self.find_tuple_by_second_item(self.image_tuples, frame.id), frame.id)] = (image_tuple, frame.id)  # Update the tuple in the list
+                    for index, my_tuple in enumerate(self.image_tuples):
+                        if my_tuple[1] == frame.id:
+                        # Create a new tuple with the same first item and the updated second item
+                            updated_tuple = ((my_tuple[0], image_path), frame.id)
+                         # Replace the old tuple with the updated one in the list
+                            self.image_tuples[index] = updated_tuple 
                 else:
                     # Create a new tuple with the second image path
-                    image_tuple = (image_path,)
+                    image_tuple = ('',image_path)
                     self.image_tuples.append((image_tuple,frame.id))
                 image = Image.open(image_path)
                 # Resize the image to a square shape
