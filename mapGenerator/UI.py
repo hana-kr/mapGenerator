@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog, messagebox, simpledialog
 from opencv import find_all_shapes
 from PIL import Image, ImageTk
@@ -54,8 +55,11 @@ class ShapeDetectionApp:
         tk.Button(self.master, text="Add Template", command=self.add_template).grid(row=4, column=1, padx=5, pady=5, sticky='e')
         tk.Button(self.master, text="Remove Template", command=self.remove_template).grid(row=4, column=1, padx=(0, 130), pady=5, sticky='e')
 
+        separator = ttk.Separator(self.master, orient="horizontal")
+        separator.grid(row=6, column=0, columnspan=3, sticky="ew", pady=10)
         # Run Detection button
-        tk.Button(self.master, text="Run Detection", command=self.run_detection).grid(row=6, column=1, pady=10)
+        tk.Button(self.master, text="Run Detection", command=self.run_detection).grid(row=7, column=2, padx=(0, 10), pady=(0,10), sticky='w')
+        tk.Button(self.master, text="cancel").grid(row=7, column=1, padx=10, pady=(0,10), sticky='e')
 
         # Variable to store the selected output folder
         self.output_folder_var = tk.StringVar()
