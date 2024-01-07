@@ -29,32 +29,4 @@ def find_all_shapes(source_image_path, template_paths, output_path):
     # Save the result image
     cv2.imwrite(output_path, source_image)
 
-# def main():
-#     # Replace this path with the path to your source image
-#     source_image_path = "DefaultPics/shapes.png"
 
-#     # Replace this path with the desired output path for the result image
-#     output_path = "DefaultPics/res.png"
-
-#     use_pre_saved_templates = False  # Set to False if you want to provide your own templates
-
-#     if use_pre_saved_templates:
-#         # Use pre-saved templates
-#         template_paths = [
-#             "path/to/template/unknown_shape_1.jpg",
-#             "path/to/template/unknown_shape_2.jpg",
-#             # Add more template paths as needed
-#         ]
-#     else:
-#         # Provide your own template paths
-#         template_paths = [
-#             "DefaultPics/shape.png",
-#             "DefaultPics/shape2.png",
-#             "DefaultPics/shape3.png",
-#             # Add more template paths as needed
-#         ]
-
-#     find_all_shapes(source_image_path, template_paths, output_path)
-
-# if __name__ == "__main__":
-#     main()

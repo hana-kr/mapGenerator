@@ -88,18 +88,8 @@ class ShapeDetectionApp:
         output_folder_path = self.output_folder_var.get()
 
         if source_image_path and output_folder_path:
-            use_pre_saved_templates = self.pre_saved_var.get()
-
-            if use_pre_saved_templates:
-                # Use pre-saved templates
-                template_paths = [
-                    "path/to/template/unknown_shape_1.jpg",
-                    "path/to/template/unknown_shape_2.jpg",
-                    # Add more template paths as needed
-                ]
-            else:
-                # Use user-provided templates
-                template_paths = [self.template_listbox.get(idx) for idx in range(self.template_listbox.size())]
+            template_paths = [
+                "shapes/pre-saved_2D/triangle.png",]
 
             find_all_shapes(source_image_path, template_paths, os.path.join(output_folder_path, "result_image.jpg"))
             messagebox.showinfo("Complete", "Shape detection completed!")
@@ -135,14 +125,29 @@ class ShapeDetectionApp:
         def update_image_preview():
             image_path = filedialog.askopenfilename()
             if image_path:
-                image_tuple = (image_path,)  # Create a tuple with the first image path
-                self.image_tuples.append((image_tuple,frame.id))
+                 # Check if there's a tuple for the current frame
+                if self.image_tuples and self.find_tuple_by_second_item(self.image_tuples, frame.id) != None:
+                    # If a tuple with one image path exists, add the second image path to the tuple
+                    for index, my_tuple in enumerate(self.image_tuples):
+                        if my_tuple[1] == frame.id:
+                        # Create a new tuple with the same first item and the updated second item
+                            updated_tuple = ((image_path, (my_tuple[0])[1]), frame.id)
+                         # Replace the old tuple with the updated one in the list
+                            self.image_tuples[index] = updated_tuple 
+                else:
+                    image_tuple = (image_path,)  # Create a tuple with the first image path
+                    self.image_tuples.append((image_tuple,frame.id))
+
                 image = Image.open(image_path)
                 # Resize the image to a square shape
                 image = self.resize_image(image, (50, 50))
                 photo = ImageTk.PhotoImage(image)
                 image_preview.config(image=photo)
                 image_preview.image = photo  # Keep a reference to prevent garbage collection of the image
+                self.print_template_frames()
+                self.print_image_tuples()
+
+
 
         def update_image_preview_2():
             selected_option = selected_option_var.get()
@@ -173,6 +178,9 @@ class ShapeDetectionApp:
                 photo = ImageTk.PhotoImage(image)
                 image_preview_2.config(image=photo)
                 image_preview_2.image = photo
+            self.print_template_frames()
+            self.print_image_tuples()
+
 
         image_button = tk.Button(frame, text="Browse Image", command=update_image_preview)
         image_button.pack(side=tk.LEFT)
@@ -202,6 +210,8 @@ class ShapeDetectionApp:
         image_preview_2.image = default_photo
 
         self.template_frames.append(frame)
+        self.print_template_frames()
+        self.print_image_tuples()
 
     def remove_template(self):
         if self.template_frames:
@@ -217,7 +227,25 @@ class ShapeDetectionApp:
                 self.image_tuples.remove((self.find_tuple_by_second_item(self.image_tuples, last_template.id), last_template.id))
             # Reset the selected template
             self.selected_template = None
+            self.print_template_frames()  # Print details after removing a template
+            self.print_image_tuples()
 
+
+    def print_template_frames(self):
+        for idx, frame in enumerate(self.template_frames):
+            print(f"Frame {idx + 1}:")
+            print(f"  ID: {frame.id}")
+            print(f"  Widgets:")
+            for widget in frame.winfo_children():
+                print(f"    {widget}: {widget.cget('text')}")
+                
+    def print_image_tuples(self):
+        for idx, (image_tuple, frame_id) in enumerate(self.image_tuples):
+            print(f"Tuple {idx + 1}:")
+            print(f"  Frame ID: {frame_id}")
+            print(f"  Image Paths:")
+            for path in image_tuple:
+                print(f"    {path}")
 
 if __name__ == "__main__":
     root = tk.Tk()
