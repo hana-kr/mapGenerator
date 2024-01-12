@@ -17,14 +17,14 @@ def find_all_shapes(source_image_path, template_paths, output_path):
 
         # Match the template in the source image
         result = cv2.matchTemplate(source_gray, template_gray, cv2.TM_CCOEFF_NORMED)
-        threshold = 0.8  # Adjust threshold as needed
+        threshold = 0.52  # Adjust threshold as needed
         locations = np.where(result >= threshold)
 
         # Draw rectangles around all occurrences
         for loc in zip(*locations[::-1]):
             top_left = loc
             bottom_right = (top_left[0] + template_gray.shape[1], top_left[1] + template_gray.shape[0])
-            cv2.rectangle(source_image, top_left, bottom_right, (0, 255, 0), 1)  # Adjust thickness here
+            cv2.rectangle(source_image, top_left, bottom_right, (0, 255, 0), 2)  # Adjust thickness here
 
     # Save the result image
     cv2.imwrite(output_path, source_image)

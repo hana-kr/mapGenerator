@@ -13,6 +13,8 @@ class ShapeDetectionApp:
     def __init__(self, master):
         self.template_frames = []
         self.image_tuples = []
+        self.template_source_paths = []
+        self.template_dest_paths = []
         self.master = master
         self.master.title("Shape Detection")
 
@@ -88,10 +90,11 @@ class ShapeDetectionApp:
         output_folder_path = self.output_folder_var.get()
 
         if source_image_path and output_folder_path:
-            template_paths = [
-                "shapes/pre-saved_2D/triangle.png",]
+            for(image_tuple, frame_id) in self.image_tuples:
+                self.template_source_paths.append(image_tuple[0])
+                self.template_dest_paths.append(image_tuple[1])
 
-            find_all_shapes(source_image_path, template_paths, os.path.join(output_folder_path, "result_image.jpg"))
+            find_all_shapes(source_image_path, self.template_source_paths, os.path.join(output_folder_path, "result_image.jpg"))
             messagebox.showinfo("Complete", "Shape detection completed!")
 
     def resize_image(self, image, size):
@@ -135,7 +138,7 @@ class ShapeDetectionApp:
                          # Replace the old tuple with the updated one in the list
                             self.image_tuples[index] = updated_tuple 
                 else:
-                    image_tuple = (image_path,)  # Create a tuple with the first image path
+                    image_tuple = (image_path,'')  # Create a tuple with the first image path
                     self.image_tuples.append((image_tuple,frame.id))
 
                 image = Image.open(image_path)
