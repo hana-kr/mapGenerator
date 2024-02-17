@@ -4,13 +4,8 @@ import cv2
 import imutils
 
 def preprocess_image(image):
-    # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # Apply GaussianBlur to reduce noise and details
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    # Apply Canny edge detection
     edges = cv2.Canny(blurred, 50, 200)
 
     return edges
